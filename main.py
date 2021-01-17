@@ -185,7 +185,7 @@ if __name__ == "__main__":
     if 'users' in os.environ:
         for user_config in os.environ['users'].split(';'):
             user_arr = user_config.split(',')
-            if len(user_arr) == 1:
+            if len(user_arr) == 2:
                 user_arr[2] = XIAOQU
             user, password, xiaoqu = user_arr
             config[user] = {
