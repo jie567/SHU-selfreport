@@ -2,7 +2,7 @@ name: Aut Report
 
 on:
   schedule:
-    - cron: "0 12,23 7 * *"
+    - cron: "0 12,23 15 * *"
 
 jobs:
   build:
