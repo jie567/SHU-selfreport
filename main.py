@@ -183,10 +183,14 @@ if __name__ == "__main__":
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     if 'users' in os.environ:
-        for user_password in os.environ['users'].split(';'):
-            user, password = user_password.split(',')
+        for user_config in os.environ['users'].split(';'):
+            user_arr = user_config.split(',')
+            if len(user_arr == 1):
+                user_arr[2] = XIAOQU
+            user, password, xiaoqu = user_arr.split(',')
             config[user] = {
-                'pwd': password
+                'pwd': password,
+                'xiaoqu': xiaoqu
             }
 
     for user in config:
@@ -207,6 +211,7 @@ if __name__ == "__main__":
 
                     t = t + dt.timedelta(days=1)
 
+            print('user_xiaoqu')
             report(sess, get_time(), user_xiaoqu)
 
         time.sleep(60)
