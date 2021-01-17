@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
                     t = t + dt.timedelta(days=1)
 
-            print('user_xiaoqu')
+            print(user_xiaoqu)
             report(sess, get_time(), user_xiaoqu)
 
         time.sleep(60)
