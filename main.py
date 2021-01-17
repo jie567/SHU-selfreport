@@ -187,7 +187,7 @@ if __name__ == "__main__":
             user_arr = user_config.split(',')
             if len(user_arr) == 1:
                 user_arr[2] = XIAOQU
-            user, password, xiaoqu = user_arr.split(',')
+            user, password, xiaoqu = user_arr
             config[user] = {
                 'pwd': password,
                 'xiaoqu': xiaoqu
