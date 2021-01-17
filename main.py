@@ -1,4 +1,3 @@
-import base64
 import datetime as dt
 import os
 import time
@@ -199,15 +198,15 @@ if __name__ == "__main__":
 
         if sess:
             now = get_time()
-
+            user_xiaoqu = config[user]['xiaoqu'] if 'xiaoqu' in config[user] else XIAOQU
             if NEED_BEFORE:
                 t = START_DT
                 while t < now:
-                    report(sess, t + dt.timedelta(hours=8), XIAOQU)
-                    report(sess, t + dt.timedelta(hours=20), XIAOQU)
+                    report(sess, t + dt.timedelta(hours=8), user_xiaoqu)
+                    report(sess, t + dt.timedelta(hours=20), user_xiaoqu)
 
                     t = t + dt.timedelta(days=1)
 
-            report(sess, get_time(), XIAOQU)
+            report(sess, get_time(), user_xiaoqu)
 
         time.sleep(60)
