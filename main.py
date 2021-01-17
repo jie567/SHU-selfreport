@@ -91,7 +91,7 @@ def myMessages(sess):
 
 
 def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
-    ii = '1' if t.hour < 19 else '2'
+    ii = '1' if t.hour < 20 else '2'
     if xiaoqu == '宝山':
         xian = '宝山区'
     elif xiaoqu == '嘉定':
