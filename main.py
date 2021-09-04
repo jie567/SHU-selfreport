@@ -218,9 +218,9 @@ if __name__ == "__main__":
     if 'users' in os.environ:
         for user_config in os.environ['users'].split(';'):
             user_arr = user_config.split(',')
-            if len(user_arr) == 2:
+            if len(user_arr) == 3:
                 user_arr.append(XIAOQU)
-            user, password, xiaoqu, name = user_arr
+            user, password, name, xiaoqu = user_arr
             config[user] = {
                 'pwd': password,
                 'xiaoqu': xiaoqu,

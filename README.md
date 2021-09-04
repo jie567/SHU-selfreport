@@ -74,6 +74,7 @@ crontab -e
   - pyyaml
   - beautifulsoup4
   - requests
+  - rsa
 
 ## 感谢
 
