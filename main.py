@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 import time
+import rsa
 from pathlib import Path
 
 import requests
@@ -35,6 +36,24 @@ def get_time():
     return t
 
 
+def get_time_text(time_now):
+    time_last = time_now - dt.timedelta(+14)
+    tText = time_last.strftime('%m月%d日') + '至' + time_now.strftime('%m月%d日')
+    return tText
+
+
+def encryptPass(key):
+    key_str = '''-----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDl/aCgRl9f/4ON9MewoVnV58OL
+    OU2ALBi2FKc5yIsfSpivKxe7A6FitJjHva3WpM7gvVOinMehp6if2UNIkbaN+plW
+    f5IwqEVxsNZpeixc4GsbY9dXEk3WtRjwGSyDLySzEESH/kpJVoxO7ijRYqU+2oSR
+    wTBNePOk1H+LRQokgQIDAQAB
+    -----END PUBLIC KEY-----'''
+    pub_key = rsa.PublicKey.load_pkcs1_openssl_pem(key_str.encode('utf-8'))
+    crypto = base64.b64encode(rsa.encrypt(key.encode('utf-8'), pub_key)).decode()
+    return crypto
+
+
 def login(username, password):
     sess = requests.Session()
     while True:
@@ -42,11 +61,12 @@ def login(username, password):
             r = sess.get('https://selfreport.shu.edu.cn/Default.aspx')
             code = r.url.split('/')[-1]
             url_param = eval(base64.b64decode(code).decode("utf-8"))
+            print(url_param)
             state = url_param['state']
             sess.post(r.url, data={
                 'username': username,
-                'password': password
-            })
+                'password': encryptPass(password)
+            }, allow_redirects=False)
             messageBox = sess.get(f'https://newsso.shu.edu.cn/oauth/authorize?response_type=code&client_id=WUHWfrntnWYHZfzQ5QvXUCVy&redirect_uri=https%3a%2f%2fselfreport.shu.edu.cn%2fLoginSSO.aspx%3fReturnUrl%3d%252fDefault.aspx&scope=1&state={state}')
             if 'tz();' in messageBox.text:  # 调用tz()函数在首层提醒未读
                 myMessages(sess)
@@ -56,7 +76,7 @@ def login(username, password):
             continue
         break
 
-    url = f'https://selfreport.shu.edu.cn/XueSFX/HalfdayReport.aspx?day=2020-11-21&t=1'
+    url = f'https://selfreport.shu.edu.cn/DayReport.aspx?day=2021-09-02'
     while True:
         try:
             r = sess.get(url)
@@ -90,8 +110,7 @@ def myMessages(sess):
     return
 
 
-def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
-    ii = '1' if t.hour < 20 else '2'
+def report(sess, t, xiaoqu='宝山', name='', temperature=random.randint(360, 372)/10, range=''):
     if xiaoqu == '宝山':
         xian = '宝山区'
     elif xiaoqu == '嘉定':
@@ -99,7 +118,7 @@ def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
     elif xiaoqu == '延长':
         xian = '静安区'
 
-    url = f'https://selfreport.shu.edu.cn/XueSFX/HalfdayReport.aspx?day={t.year}-{t.month}-{t.day}&t={ii}'
+    url = f'https://selfreport.shu.edu.cn/DayReport.aspx?day={t.year}-{"{:02d}".format(t.month)}-{"{:02d}".format(t.day)}'
     while True:
         try:
             sess.get('https://newsso.shu.edu.cn/oauth/authorize?response_type=code&client_id=WUHWfrntnWYHZfzQ5QvXUCVy&redirect_uri=https%3a%2f%2fselfreport.shu.edu.cn%2fLoginSSO.aspx%3fReturnUrl%3d%252fDefault.aspx&scope=1')
@@ -122,13 +141,20 @@ def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
     while True:
         try:
             r = sess.post(url, data={
-                '__EVENTTARGET': 'p1$ctl00$btnSubmit',
-                '__VIEWSTATE': view_state['value'],
-                '__VIEWSTATEGENERATOR': 'DC4D08A3',
+                "__EVENTTARGET": "p1$ctl01$btnSubmit",
+                "__EVENTARGUMENT": "",
+                "__VIEWSTATE": view_state['value'],
+                "__VIEWSTATEGENERATOR": "7AD7E509",
                 'p1$ChengNuo': 'p1_ChengNuo',
                 'p1$BaoSRQ': t.strftime('%Y-%m-%d'),
                 'p1$DangQSTZK': '良好',
-                'p1$TiWen': str(temperature),
+                'p1$GuoNei': '国内',
+                'p1$ddlGuoJia$Value': -1,
+                'p1$ddlGuoJia': '选择国家',
+                'p1$ShiFSH': '是',
+                'p1$ShiFZX': '是',
+                "p1$ShiFZJ": '否',
+                'p1$TiWen': '',
                 'p1$ZaiXiao': xiaoqu,
                 'p1$ddlSheng$Value': '上海',
                 'p1$ddlSheng': '上海',
@@ -143,6 +169,12 @@ def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
                 'p1$QueZHZJC': '否',
                 'p1$DangRGL': '否',
                 'p1$GeLDZ': '',
+                'p1$FanXRQ': '',
+                'p1$WeiFHYY': '',
+                'p1$ShangHJZD': '',
+                'p1$DaoXQLYGJ': '',
+                "p1$DaoXQLYCS": "没有",
+                "p1_ContentPanel1_Collapsed": "true",
                 'p1$CengFWH': '否',
                 'p1$CengFWH_RiQi': '',
                 'p1$CengFWH_BeiZhu': '',
@@ -159,7 +191,7 @@ def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
                 'p1_GeLSM_Collapsed': 'false',
                 'p1_Collapsed': 'false',
                 'F_TARGET': 'p1_ctl00_btnSubmit',
-                'F_STATE': F_STATE_GENERATOR().updated_F_STATE(t, xiaoqu, xian, ii),
+                'F_STATE': F_STATE_GENERATOR().updated_F_STATE(t, xiaoqu, xian, name, range),
             }, headers={
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-FineUI-Ajax': 'true'
@@ -169,7 +201,8 @@ def report(sess, t, xiaoqu='宝山', temperature=random.randint(360, 372)/10):
             continue
         break
 
-    if any(i in r.text for i in ['提交成功', '历史信息不能修改', '现在还没到晚报时间', '只能填报当天或补填以前的信息']):
+    # if any(i in r.text for i in ['提交成功', '历史信息不能修改', '现在还没到晚报时间', '只能填报当天或补填以前的信息']):
+    if any(i in r.text for i in ['提交成功']):
         print(f'{t} 提交成功')
         return True
     else:
@@ -187,10 +220,11 @@ if __name__ == "__main__":
             user_arr = user_config.split(',')
             if len(user_arr) == 2:
                 user_arr.append(XIAOQU)
-            user, password, xiaoqu = user_arr
+            user, password, xiaoqu, name = user_arr
             config[user] = {
                 'pwd': password,
-                'xiaoqu': xiaoqu
+                'xiaoqu': xiaoqu,
+                'name': name
             }
 
     for user in config:
@@ -202,16 +236,18 @@ if __name__ == "__main__":
 
         if sess:
             now = get_time()
+            range = get_time_text(now)
             user_xiaoqu = config[user]['xiaoqu'] if 'xiaoqu' in config[user] else XIAOQU
+            user_name = config[user]['name']
             if NEED_BEFORE:
                 t = START_DT
                 while t < now:
-                    report(sess, t + dt.timedelta(hours=8), user_xiaoqu)
-                    report(sess, t + dt.timedelta(hours=20), user_xiaoqu)
+                    report(sess, t + dt.timedelta(hours=8), user_xiaoqu, user_name, range)
+                    report(sess, t + dt.timedelta(hours=20), user_xiaoqu, user_name, range)
 
                     t = t + dt.timedelta(days=1)
 
             print(user_xiaoqu)
-            report(sess, get_time(), user_xiaoqu)
+            report(sess, get_time(), user_xiaoqu, user_name, range)
 
         time.sleep(60)
